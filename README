@@ -1,0 +1,25 @@
+
+tcp_send_splice : send data received on standard input to a remote host
+
+I wrote this tiny utility, because I found that netcat and socat consume
+way too much CPU for the little work they do. As I use them to send
+harddisk-images/backups over the network I decided that I should try and
+write something using the splice syscall which avoids copying data to/from
+userspace from/to the kernel.
+
+i.e. here, you can see socat copying the output of ntfsclone to a remote host:
+
+  PID USER      PRI  NI  VIRT   RES   SHR S CPU% MEM%   TIME+  Command
+ 4606 chris      20   0  5664  1272  1036 R 84.9  0.1 14:21.88 socat -u STDIN TCP:192.168.2.123:1235
+ 4607 root       20   0 10400  5244  1956 R 46.2  0.5  7:56.81 ntfsclone -o - -s /dev/sda2
+ 3122 chris      20   0  8272  5732  2368 S  2.3  0.6  0:38.71 tmux
+
+..and here's tcp_send_splice:
+
+  PID USER      PRI  NI  VIRT   RES   SHR S CPU% MEM%   TIME+  Command
+ 5758 root       20   0 26036  3244  2004 D 35.3  0.3  0:20.67 ntfsclone -o - -s /dev/sda5
+ 5759 root       20   0  1888   336   296 S 24.2  0.0  0:13.78 tcp_send_splice 192.168.2.123 1234
+ 5587 chris      20   0  6668  3988  2348 S  1.4  0.4  0:01.90 tmux
+
+Instead of consuming almost two times the CPU of ntfsclone, not it's only
+consuming two thirds.
