@@ -1,5 +1,6 @@
 
-tcp_send_splice : send data received on standard input to a remote host
+tcp_send_splice : send data received on a pipe on standard input to a remote host
+tcp_recv_splice : received data on a network socket, write to a pipe on stdout
 
 I wrote this tiny utility, because I found that netcat and socat consume
 way too much CPU for the little work they do. As I use them to send
@@ -23,3 +24,10 @@ i.e. here, you can see socat copying the output of ntfsclone to a remote host:
 
 Instead of consuming almost two times the CPU of ntfsclone, not it's only
 consuming two thirds.
+
+Usage:
+
+	data_producer | tcp_send_splice another_host 1234
+	tcp_recv_splice 1234 | data_consumer
+
+You *HAVE* to have a pipe in there, otherwise it won't work.
